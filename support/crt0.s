@@ -48,7 +48,6 @@ gsinit::
 	ldir
 
 gsinit_next:
-
 	.area   _GSFINAL
 	ret
 ; vim:set ft=z80:
