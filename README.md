@@ -19,7 +19,7 @@ using sdcc:
 ### The Solutions
 
 1. To bypass the one-file-at-a-time limitation, we can compile each
-   source file separately into object files and then link them
+   source file separately into object file and then link all of them
    together.
 2. To convert Intel Hex files to binary executables, we can use
    the `objcopy` utility from the LLVM project.
