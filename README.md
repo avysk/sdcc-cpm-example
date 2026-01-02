@@ -24,7 +24,7 @@ using sdcc:
 2. To convert Intel Hex files to binary executables, we can use
    the `objcopy` utility from the LLVM project.
 3. To provide CP/M-compatible startup code, we can write our own
-   startup assembly file (`crt0.asm`).
+   startup assembly file (`crt0.s`).
 
 ## The Usage
 
