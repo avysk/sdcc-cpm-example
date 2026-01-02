@@ -1,0 +1,12 @@
+/.harper-dictionary.txt
+*.asm
+*.lst
+*.sym
+*.lk
+*.map
+*.noi
+*.rel
+*.ihx
+*.com
+
+.*.sw[a-z]
