@@ -28,6 +28,9 @@ using sdcc:
 
 ## The Usage
 
-Clone the repository and run `make` (or `gmake` on BSD systems). This
-will produce a CP/M executable named `main.com`. You can run it, for
-example, using the [YAZE-AG Emulator](https://agl.yaze-ag.de/).
+Clone the repository and run `make`. You should have `cmake` installed. The
+resulting `main.com` will be produced in the root directory. You can run it,
+for example, using the [YAZE-AG Emulator](https://agl.yaze-ag.de/).
+
+You can remove both the `build` directory and the `main.com` file by running
+`make clean`.

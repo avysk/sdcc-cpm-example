@@ -1,24 +1,12 @@
-SOURCES = main.c greet.c
+all: build
+	@cmake --build build
+	@cp build/main.com .
 
-REL = ${SOURCES:.c=.rel}
-
-SDCC_FLAGS = -mz80 --std-c23
-
-all: main.com
-
-crt0.rel: crt0.s
-	sdasz80 -g -l -o crt0.rel crt0.s
-
-%.rel: %.c
-	sdcc ${SDCC_FLAGS} -c $<
-
-main.ihx: crt0.rel ${REL}
-	sdcc ${SDCC_FLAGS} --no-std-crt0 $< ${REL} -o $@
-
-main.com: main.ihx
-	objcopy -I ihex -O binary $< $@
+build: CMakeLists.txt support/CMakeLists.txt src/CMakeLists.txt
+	@cmake -S . -B build --fresh
 
 clean:
-	rm -f *.rel *.ihx *.com *.lk *.map *.noi *.asm
+	@rm -rf build
+	@rm -f main.com
 
 .PHONY: all clean

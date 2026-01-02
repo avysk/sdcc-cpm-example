@@ -1,12 +1,5 @@
 /.harper-dictionary.txt
-*.asm
-*.lst
-*.sym
-*.lk
-*.map
-*.noi
-*.rel
-*.ihx
-*.com
+/build/
+/main.com
 
 .*.sw[a-z]
