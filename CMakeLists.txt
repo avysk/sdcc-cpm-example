@@ -27,7 +27,7 @@ add_custom_command(
   OUTPUT main.ihx
   COMMAND ${SDCC_EXECUTABLE} ${CMAKE_C_FLAGS} --no-std-crt0 ${CRT0_REL}
           ${SRC_REL_FILES} -o main.ihx
-  DEPENDS crt0_asm src_objects)
+  DEPENDS crt0_asm src_objects ${SRC_REL_FILES} ${CRT0_REL})
 add_custom_command(
   DEPENDS main.ihx
   OUTPUT main.com
