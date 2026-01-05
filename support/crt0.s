@@ -39,6 +39,27 @@ _putchar::
 
 	.area   _GSINIT
 gsinit::
+	; Initialize global/static variables
+	ld	bc,#l__DATA
+	ld	a,b
+	or	a,c
+	; if there is no data to initialize, skip
+	jr	Z,zeroed_data
+	; write zero to first byte of data segment
+	ld	hl,#s__DATA
+	ld	(hl),#0x00
+	dec	bc
+	ld	a,b
+	or	a,c
+	; if we had to initialize only one byte, done
+	jr	Z,zeroed_data
+	; otherwise, repeatedly copy (just written zero) to the next byte
+	ld	e,l
+	ld	d,h
+	inc	de
+	ldir
+zeroed_data:
+
 	ld	bc, #l__INITIALIZER
 	ld	a, b
 	or	a, c
