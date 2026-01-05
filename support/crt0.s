@@ -8,6 +8,11 @@
 	.org	0x100
 	ld	sp,(0x0006)
 
+; now let's copy the second FCB
+	ld	hl,#0x6C
+	ld	de,#second_fcb
+	ld	bc,#36
+	ldir
 	call	gsinit
 	call	_main
 	jp	_exit
@@ -22,6 +27,9 @@
 	.area	_INITIALIZED
 	.area	_BSEG
 	.area	_BSS
+second_fcb:
+	.db	36
+
 	.area	_HEAP
 
 	.area	_CODE
@@ -36,6 +44,83 @@ _putchar::
 	ld	e,a
 	ld	c,#2	; BDOS C_WRITE
 	jp	5
+
+
+zero_fcb_fields:
+	ld	hl,#0x000C
+	add	hl,de
+	ld	(hl),#0x00	; EX => 0
+	inc	hl
+	ld	(hl),#0x00	; S1 => 0
+	inc	hl
+	ld	(hl),#0x00	; S2 => 0
+	inc	hl
+	ld	(hl),#0x00	; RC => 0
+	ret
+
+; Loads in de the address of FCB for the file name supplied on the command line
+; Input: (8-bit value in A) 0 or 1 for the first or second file name
+; Output: DE points to the FCB
+_get_fcb:
+	ld	de,#0x5C
+	or	a
+	jr	z,get_first
+	ld	de,#second_fcb
+get_first:
+	ret
+
+; Keep a if it is 0xFF, otherwise set to 0
+_check_ff:
+	cp	#0xFF
+	ret	z
+	xor	a
+	ret
+
+;; BDOS F_OPEN for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (8-bit value in A) 0 on success, 0xFF on failure
+_f_open::
+	push	af
+	call	_get_fcb
+	ld	hl,#0x0020
+	add	hl,de
+	ld	(hl),#0x00	; CR => 0
+	ld	c,#0x0F		; BDOS F_OPEN
+	call	5
+	pop	af
+	call	_get_fcb
+	ld	hl,#0x0020
+	add	hl,de
+	ld	(hl),#0x00	; CR => 0
+	jr	_check_ff
+
+;; BDOS F_CLOSE for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (8-bit value in A) 0 on success, 0xFF on failure
+_f_close::
+	call	_get_fcb
+	ld	c,#0x10	; BDOS F_CLOSE
+	call	5
+	jr	_check_ff
+
+;; BDOS F_DELETE for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (8-bit value in A) 0 on success, 0xFF on failure
+_f_delete::
+	call	_get_fcb
+	ld	c,#0x13	; BDOS F_DELETE
+	call	5
+	jr	_check_ff
+
+;; BDOS F_MAKE for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (8-bit value in A) 0 on success, 0xFF on failure
+;; NOTE: if the file already exists, CP/M will return to CCP
+_f_make::
+	call	_get_fcb
+	ld	c,#0x16	; BDOS F_MAKE
+	call	5
+	jr	_check_ff
 
 	.area   _GSINIT
 gsinit::
@@ -68,7 +153,8 @@ zeroed_data:
 	ld	hl, #s__INITIALIZER
 	ldir
 
+
+.area   _GSFINAL
 gsinit_next:
-	.area   _GSFINAL
 	ret
 ; vim:set ft=z80:
