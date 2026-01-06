@@ -1,4 +1,4 @@
-;  crt0.s - Custom crt0.s for a Z80
+;; crt0.s - Custom crt0.s for a Z80
 
 	.module crt0
 	.optsdcc -mz80 sdcccall(1)
@@ -15,7 +15,7 @@
 	ldir
 	call	gsinit
 	call	_main
-	jp	_exit
+	jp	exit
 
 	.area	_HOME
 	.area	_CODE
@@ -34,7 +34,7 @@ second_fcb:
 
 	.area	_CODE
 
-_exit::
+exit:
 	jp	0	; CP/M warm boot
 
 _getchar::
@@ -61,7 +61,7 @@ zero_fcb_fields:
 ; Loads in de the address of FCB for the file name supplied on the command line
 ; Input: (8-bit value in A) 0 or 1 for the first or second file name
 ; Output: DE points to the FCB
-_get_fcb:
+get_fcb:
 	ld	de,#0x5C
 	or	a
 	jr	z,get_first
@@ -70,7 +70,7 @@ get_first:
 	ret
 
 ; Keep a if it is 0xFF, otherwise set to 0
-_check_ff:
+check_ff:
 	cp	#0xFF
 	ret	z
 	xor	a
@@ -81,49 +81,51 @@ _check_ff:
 ;; Output: (8-bit value in A) 0 on success, 0xFF on failure
 _f_open::
 	push	af
-	call	_get_fcb
+	call	get_fcb
+	call	zero_fcb_fields
 	ld	hl,#0x0020
 	add	hl,de
 	ld	(hl),#0x00	; CR => 0
 	ld	c,#0x0F		; BDOS F_OPEN
 	call	5
 	pop	af
-	call	_get_fcb
+	call	get_fcb
 	ld	hl,#0x0020
 	add	hl,de
 	ld	(hl),#0x00	; CR => 0
-	jr	_check_ff
+	jr	check_ff
 
 ;; BDOS F_CLOSE for file names supplied on the command line
 ;; Input: (8-bit value in A) 0 or 1 for the first or second file name
 ;; Output: (8-bit value in A) 0 on success, 0xFF on failure
 _f_close::
-	call	_get_fcb
+	call	get_fcb
 	ld	c,#0x10	; BDOS F_CLOSE
 	call	5
-	jr	_check_ff
+	jr	check_ff
 
 ;; BDOS F_DELETE for file names supplied on the command line
 ;; Input: (8-bit value in A) 0 or 1 for the first or second file name
 ;; Output: (8-bit value in A) 0 on success, 0xFF on failure
 _f_delete::
-	call	_get_fcb
+	call	get_fcb
+	call	zero_fcb_fields
 	ld	c,#0x13	; BDOS F_DELETE
 	call	5
-	jr	_check_ff
+	jr	check_ff
 
 ;; BDOS F_MAKE for file names supplied on the command line
 ;; Input: (8-bit value in A) 0 or 1 for the first or second file name
 ;; Output: (8-bit value in A) 0 on success, 0xFF on failure
 ;; NOTE: if the file already exists, CP/M will return to CCP
 _f_make::
-	call	_get_fcb
+	call	get_fcb
 	ld	c,#0x16	; BDOS F_MAKE
 	call	5
-	jr	_check_ff
+	jr	check_ff
 
 	.area   _GSINIT
-gsinit::
+gsinit:
 	; Initialize global/static variables
 	ld	bc,#l__DATA
 	ld	a,b
