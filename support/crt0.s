@@ -6,6 +6,15 @@
 
 	.area	_HEADER (ABS)
 	.org	0x100
+
+	; we support only CP/M >= 2.2 on a Z80
+	ld	c,#0x0C
+	call	5
+	cp	#0x22
+	jr	c,bad_cpm_version
+	ld	a,b
+	or	a
+	jr	nz,bad_cpm_version
 	ld	sp,(0x0006)
 
 ; now let's copy the second FCB
@@ -15,6 +24,12 @@
 	ldir
 	call	gsinit
 	call	_main
+	jp	exit
+
+bad_cpm_version:
+	ld	de,#msg_bad_cpm_version
+	ld	c,#0x09
+	call	5
 	jp	exit
 
 	.area	_HOME
@@ -29,6 +44,8 @@
 	.area	_BSS
 second_fcb:
 	.ds	36
+msg_bad_cpm_version:
+	.ascii	"Error: CP/M >= 2.2 on Z80 is required.\n\r$"
 
 	.area	_HEAP
 
