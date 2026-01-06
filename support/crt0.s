@@ -28,7 +28,7 @@
 	.area	_BSEG
 	.area	_BSS
 second_fcb:
-	.db	36
+	.ds	36
 
 	.area	_HEAP
 
