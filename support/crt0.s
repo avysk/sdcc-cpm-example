@@ -47,6 +47,9 @@ second_fcb:
 msg_bad_cpm_version:
 	.ascii	"Error: CP/M >= 2.2 on Z80 is required.\n\r$"
 
+dma_buffer:
+	.ds	128
+
 	.area	_HEAP
 
 	.area	_CODE
@@ -131,6 +134,48 @@ _f_delete::
 	call	5
 	jr	check_ff
 
+;; BDOS F_READ for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (16-bit value in DE) the address of (128-byte) DMA buffer; 0 for
+;; EOF, 0xFFFF on error
+_f_read::
+	push	af
+	ld	de,#dma_buffer
+	ld	c,#0x1A	; BDOS F_DMAOFF
+	call	5
+	pop	af
+	call	get_fcb
+	ld	c,#0x14	; BDOS F_READ
+	call	5
+	or	a
+	jr	nz,bad
+	ld	de,#dma_buffer
+	ret
+bad:
+	dec	a
+	jr	nz,read_error
+	ld	de,#0x0000	; EOF
+	ret
+read_error:
+	ld	de,#0xFFFF	; error
+	ret
+
+;; BDOS F_WRITE for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;;        (16-bit value in DE) pointer to 128 bytes of data to write
+;; Output: (8-bit value in A) 0 OK, 1 directory full, 2 disk full, other value
+;;         some CP/M error
+_f_write::
+	push	af
+	ld	c,#0x1A	; BDOS F_DMAOFF
+	call	5
+	pop	af
+	call	get_fcb
+	ld	c,#0x15	; BDOS F_WRITE
+	call	5
+	ret
+
+
 ;; BDOS F_MAKE for file names supplied on the command line
 ;; Input: (8-bit value in A) 0 or 1 for the first or second file name
 ;; Output: (8-bit value in A) 0 on success, 0xFF on failure
@@ -140,6 +185,21 @@ _f_make::
 	ld	c,#0x16	; BDOS F_MAKE
 	call	5
 	jr	check_ff
+
+;; BDOS F_SIZE for file names supplied on the command line
+;; Input: (8-bit value in A) 0 or 1 for the first or second file name
+;; Output: (32-bit value in HLDE) file size in 128-byte records
+_f_size::
+	call	get_fcb
+	push	de
+	ld	c,#0x23	; BDOS F_SIZE
+	call	5
+	pop	ix
+	ld	h,#0x00
+	ld	l,(ix+#0x23)
+	ld	d,(ix+#0x21)
+	ld	e,(ix+#0x22)
+	ret
 
 	.area   _GSINIT
 gsinit:

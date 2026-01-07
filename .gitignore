@@ -1,5 +1,11 @@
 /.harper-dictionary.txt
+
+# Build artefacts
 /build/
 /main.com
 
+# vim swap files
 .*.sw[a-z]
+
+# z80pack disks
+/disks/
